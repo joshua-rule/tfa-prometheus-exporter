@@ -63,8 +63,6 @@ class TFACollector:
 
 
     def collect(self):
-        print("RAWR")
-
         if not self.last_measurement:
             return
 
@@ -134,13 +132,10 @@ if __name__ == "__main__":
     collector = TFACollector(settings)
     collector.start()
 
-    print("HLLO")
-
     registry = CollectorRegistry()
     registry.register(collector)
     handler = MetricsHandler.factory(registry)
     httpd = exposition.ThreadingWSGIServer(("", 9009), handler)
 
-    print(httpd)
     httpd.serve_forever()
     
