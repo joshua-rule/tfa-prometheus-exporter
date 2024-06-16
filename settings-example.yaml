@@ -1,4 +1,4 @@
-phone_id: 553825043898
+phone_id: yourphoneid
 sensor_ids:
-  - 026BD8628B50
-  - 0309E68B2ABC
+  - sensorid1
+  - sensorid2
