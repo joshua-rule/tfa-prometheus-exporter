@@ -41,7 +41,7 @@ class TFACollector:
     settings: Settings
 
     last_request_time: datetime
-    last_measurement: dict[str, float] = dict()
+    last_measurement: dict[str, dict[str, float]] = dict()
     interval: timedelta
     api_thread: Thread
     running = False
@@ -67,9 +67,11 @@ class TFACollector:
             return
 
         gauge = GaugeMetricFamily("tfa_sensor_temperature", "TFA WeatherHub Sensors", labels=["deviceid"])
+        gauge = GaugeMetricFamily("tfa_sensor_humifity", "TFA WeatherHub Sensors", labels=["deviceid"])
 
-        for deviceid, temperature in self.last_measurement.items():
-            gauge.add_metric([deviceid], temperature)
+        for deviceid, measurement in self.last_measurement.items():
+            gauge.add_metric([deviceid], measurement["temperature"])
+            gauge.add_metric([deviceid], measurement["humidity"])
 
         yield gauge
 
@@ -101,7 +103,10 @@ class TFACollector:
             devices = response.json()["devices"]
 
             for device in devices:
-                self.last_measurement[device["deviceid"]] = device["measurement"]["t1"]
+                self.last_measurement[device["deviceid"]] = {
+                    "temperature": device["measurement"]["t1"],
+                    "humidity": device["measurement"]["h"],
+                }
 
             logging.info(self.last_measurement)
 
