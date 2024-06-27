@@ -66,14 +66,15 @@ class TFACollector:
         if not self.last_measurement:
             return
 
-        gauge = GaugeMetricFamily("tfa_sensor_temperature", "TFA WeatherHub Sensors", labels=["deviceid"])
-        gauge = GaugeMetricFamily("tfa_sensor_humifity", "TFA WeatherHub Sensors", labels=["deviceid"])
+        temp_gauge = GaugeMetricFamily("tfa_sensor_temperature", "TFA WeatherHub Sensors", labels=["deviceid"])
+        humidity_gauge = GaugeMetricFamily("tfa_sensor_humidity", "TFA WeatherHub Sensors", labels=["deviceid"])
 
         for deviceid, measurement in self.last_measurement.items():
-            gauge.add_metric([deviceid], measurement["temperature"])
-            gauge.add_metric([deviceid], measurement["humidity"])
+            temp_gauge.add_metric([deviceid], measurement["temperature"])
+            humidity_gauge.add_metric([deviceid], measurement["humidity"])
 
-        yield gauge
+        yield temp_gauge
+        yield humidity_gauge
 
 
     def __fetch_measurements(self):
@@ -123,7 +124,7 @@ class TFACollector:
 
 
 def fetch_settings() -> Settings:
-    with open("settings.yaml") as file:
+    with open("/home/prometheus/tfa-prometheus-exporter/settings.yaml") as file:
         data = yaml.safe_load(file)
         return Settings(data["phone_id"], data["sensor_ids"])
     
