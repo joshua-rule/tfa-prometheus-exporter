@@ -91,25 +91,31 @@ class TFACollector:
                 "phoneid": self.settings.phone_id,
                 "deviceids": ",".join(self.settings.sensor_ids)
             }
-            response = requests.post(self.BASE_URI, data=request_data)
 
-            if response.status_code == 429:
-                self.ratelimit_backoff()
-                continue
-            
-            if response.status_code != 200:
-                logging.error(f"Failed to fetch measurements code status code: {response.status_code}")
-                continue
-            
-            devices = response.json()["devices"]
+            try:
+                response = requests.post(self.BASE_URI, data=request_data)
 
-            for device in devices:
-                self.last_measurement[device["deviceid"]] = {
-                    "temperature": device["measurement"]["t1"],
-                    "humidity": device["measurement"]["h"],
-                }
+                if response.status_code == 429:
+                    self.ratelimit_backoff()
+                    continue
+                
+                if response.status_code != 200:
+                    logging.error(f"Failed to fetch measurements code status code: {response.status_code}")
+                    continue
+                
+                devices = response.json()["devices"]
 
-            logging.info(self.last_measurement)
+                for device in devices:
+                    self.last_measurement[device["deviceid"]] = {
+                        "temperature": device["measurement"]["t1"],
+                        "humidity": device["measurement"]["h"],
+                    }
+
+                logging.info(self.last_measurement)
+            except ConnectionError as error:
+                logging.error("Failed to connect to API", exec_info = error)
+            except Exception as error:
+                logging.error("Unhandled error getting measure data", exc_info=error)
 
 
     def ratelimit_backoff(self):
